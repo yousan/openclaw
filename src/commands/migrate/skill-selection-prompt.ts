@@ -11,7 +11,6 @@ import {
   symbolBar,
 } from "@clack/prompts";
 import {
-  reconcileInteractiveMigrationEnterValues,
   reconcileInteractiveMigrationShortcutValues,
   reconcileInteractiveMigrationSkillToggleValues,
 } from "./selection.js";
@@ -173,50 +172,29 @@ export function promptMigrationSkillSelectionValues(
     },
   });
   let lastSelectedValues = [...(prompt.value ?? [])];
-  let lastSpaceDeselectedValue: string | undefined;
 
+  // Space toggles propagate through `reconcileInteractiveMigrationSkillToggleValues`
+  // so the sentinel "Skip for now" / "Toggle all on" / "Toggle all off" rows
+  // expand to the correct value set when the user space-toggles them. Enter
+  // is intentionally NOT customized: it submits whatever is currently selected,
+  // matching the behavior of every other wizard multiselect (see
+  // `src/wizard/setup.official-plugins.ts`). To trigger a sentinel action,
+  // navigate to its row and press space, then enter.
   prompt.on("cursor", (key) => {
     if (key !== "space") {
-      lastSpaceDeselectedValue = undefined;
       return;
     }
     const activatedValue = prompt.options[prompt.cursor]?.value;
-    const previousValues = lastSelectedValues;
     const selectedValuesAfterClack = prompt.value ?? [];
     prompt.value = reconcileInteractiveMigrationSkillToggleValues(
       selectedValuesAfterClack,
       activatedValue,
       opts.selectableValues,
     );
-    lastSpaceDeselectedValue =
-      activatedValue !== undefined &&
-      opts.selectableValues.includes(activatedValue) &&
-      previousValues.includes(activatedValue) &&
-      !(prompt.value ?? []).includes(activatedValue)
-        ? activatedValue
-        : undefined;
     lastSelectedValues = [...(prompt.value ?? [])];
   });
 
-  prompt.on("key", (key, info) => {
-    if (info.name === "return") {
-      const activatedOption = prompt.options[prompt.cursor];
-      const activatedValue = activatedOption?.disabled ? undefined : activatedOption?.value;
-      prompt.value = reconcileInteractiveMigrationEnterValues(
-        prompt.value ?? [],
-        activatedValue,
-        opts.selectableValues,
-        {
-          preserveDeselectedActivatedValue:
-            activatedValue !== undefined &&
-            activatedValue === lastSpaceDeselectedValue &&
-            !(prompt.value ?? []).includes(activatedValue),
-        },
-      );
-      lastSpaceDeselectedValue = undefined;
-      lastSelectedValues = [...(prompt.value ?? [])];
-      return;
-    }
+  prompt.on("key", (key) => {
     if (key !== "a" && key !== "i") {
       return;
     }
@@ -226,7 +204,6 @@ export function promptMigrationSkillSelectionValues(
       opts.selectableValues,
       key,
     );
-    lastSpaceDeselectedValue = undefined;
     lastSelectedValues = [...(prompt.value ?? [])];
   });
 

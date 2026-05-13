@@ -334,7 +334,7 @@ export async function migratePlanCommand(
   const plan = await createMigrationPlanWithProgress(runtime, { ...opts, provider: providerId });
   if (opts.json) {
     writeRuntimeJson(runtime, redactMigrationPlan(plan));
-  } else {
+  } else if (opts.suppressPlanLog !== true) {
     runtime.log(formatMigrationPlan(plan).join("\n"));
   }
   return plan;

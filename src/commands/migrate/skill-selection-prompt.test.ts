@@ -70,13 +70,16 @@ async function runPromptWithReturn(params: {
 }
 
 describe("promptMigrationSkillSelectionValues", () => {
-  it("activates Skip for now before submitting with return", async () => {
+  it("submits the pre-selected visual state when Enter is pressed at Skip for now", async () => {
+    // Enter never triggers a sentinel action by cursor position; it submits
+    // whatever the user can see is selected. The user must space-toggle the
+    // sentinel row first to activate it.
     await expect(
       runPromptWithReturn({
         cursorAt: MIGRATION_SKILL_SELECTION_SKIP,
         initialValues: ["skill:alpha", "skill:beta"],
       }),
-    ).resolves.toEqual([MIGRATION_SKILL_SELECTION_SKIP]);
+    ).resolves.toEqual(["skill:alpha", "skill:beta"]);
   });
 
   it("keeps the cursor item selected when submitting with return", async () => {
@@ -98,20 +101,32 @@ describe("promptMigrationSkillSelectionValues", () => {
     ).resolves.toEqual(["skill:beta"]);
   });
 
-  it("activates Toggle all off before submitting with return", async () => {
+  it("activates Skip for now when space-toggled before Enter", async () => {
     await expect(
-      runPromptWithReturn({
+      runPromptWithKeys({
+        cursorAt: MIGRATION_SKILL_SELECTION_SKIP,
+        initialValues: ["skill:alpha", "skill:beta"],
+        keys: [" ", "\r"],
+      }),
+    ).resolves.toEqual([MIGRATION_SKILL_SELECTION_SKIP]);
+  });
+
+  it("activates Toggle all off when space-toggled before Enter", async () => {
+    await expect(
+      runPromptWithKeys({
         cursorAt: MIGRATION_SKILL_SELECTION_TOGGLE_ALL_OFF,
         initialValues: ["skill:alpha", "skill:beta"],
+        keys: [" ", "\r"],
       }),
     ).resolves.toEqual([MIGRATION_SKILL_SELECTION_TOGGLE_ALL_OFF]);
   });
 
-  it("activates Toggle all on before submitting with return", async () => {
+  it("activates Toggle all on when space-toggled before Enter", async () => {
     await expect(
-      runPromptWithReturn({
+      runPromptWithKeys({
         cursorAt: MIGRATION_SKILL_SELECTION_TOGGLE_ALL_ON,
         initialValues: [],
+        keys: [" ", "\r"],
       }),
     ).resolves.toEqual([MIGRATION_SKILL_SELECTION_TOGGLE_ALL_ON, "skill:alpha", "skill:beta"]);
   });
