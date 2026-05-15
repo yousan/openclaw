@@ -240,7 +240,7 @@ function buildReactionSchema() {
     messageId: Type.Optional(
       Type.String({
         description:
-          "Target message id for read, reaction, edit, delete, pin, or unpin. If omitted for reaction-like actions, defaults to the current inbound message id when available.",
+          "Target message id for fetch, read, reaction, edit, delete, pin, or unpin. If omitted for reaction-like actions, defaults to the current inbound message id when available.",
       }),
     ),
     message_id: Type.Optional(
@@ -271,6 +271,12 @@ function buildReactionSchema() {
 
 function buildFetchSchema() {
   return {
+    url: Type.Optional(
+      Type.String({
+        description:
+          "Full message URL for single-message fetch (e.g. Discord message link). Use instead of channelId + messageId when the URL is known.",
+      }),
+    ),
     limit: Type.Optional(Type.Number()),
     pageSize: Type.Optional(Type.Number()),
     pageToken: Type.Optional(Type.String()),
